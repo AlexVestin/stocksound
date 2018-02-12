@@ -3,7 +3,9 @@ import {Card, CardActions, CardHeader, CardText} from 'material-ui/Card';
 import RaisedButton from 'material-ui/RaisedButton';
 import FlatButton from 'material-ui/FlatButton';
 import Graph from './graph'
-
+import Snackbar from 'material-ui/Snackbar';
+import {getText} from './networking'
+import {generateTimeStamps, parseResponse, setTimeInterval} from './parseutil'
 export default class TickerCard extends React.Component {
   
   constructor(props) {
@@ -13,14 +15,12 @@ export default class TickerCard extends React.Component {
     this.dateButtonClicked = this.dateButtonClicked.bind(this)
 
     this.state = {
-      expanded: false, 
-      loaded:false, 
-      playing:false, 
-      data: [], 
+      expanded: false,       
       date: 0, 
+      data: [], 
       timeStamps: [],
-      timeStampDetail: "",
-      prcChange: 0
+      prcChange: 0,
+      displayError: false
     };
   
     this.multiplier = 300
@@ -32,71 +32,40 @@ export default class TickerCard extends React.Component {
     this.priceData = []
     this.timeStamps = []
     this.URL = "https://hidden-island-42423.herokuapp.com/api/"+props.ticker+"&x="+props.x+"&f=d,o"
-    
+    this.errorMessage = "Something went wrong"
   }
 
   componentDidMount = (props) => {
     this.getlastClose()
-    this.getData(this.URL +"&i=300&p=1d", 0)
+    getText(this.URL +"&i=300&p=1d", this.parseResponse, this.handleRequestError)  
   }
 
-  getData = (url, val) => {
-      
-      this.setState({fetching: true}, () => {
-      fetch(url, {
-        method: "GET",
-        mode: 'cors',
-        headers:{
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Credentials':true,
-            'Access-Control-Allow-Methods': 'GET'
-            }
-    }).then(response => { return response.text() }).then( response=>{
-        this.priceData = []
-        this.timeStamps = []
-        let lines = response.split('\n')
-        lines.splice(0, 7)   
-        let prev = -1
-        lines.forEach((line, i) => {
-          if(this.timeInterval !== "1M" || i % 2 ===  1){
-            if(line.indexOf("TIMEZONE_OFFSET") === -1){
-              let d = line.split(",")
-              if(d[0].length > 10){
-                prev = Number(d[0].slice(1))* 1000 
-                this.timeStamps.push(new Date(prev))
-              }else{
-                prev += this.gran*1000
-                this.timeStamps.push(new Date(prev))
-              }
-              this.priceData.push(d[1])
-            }  
-          } 
-        })
+  parseResponse = (response) => {
+    let data = parseResponse(response, this.timeInterval, this.gran)
+    this.priceData = data[0]
+    this.timeStamps = data[1]
+    this.open = this.priceData[0]
+    
+    if(this.timeInterval === "1d" && this.lastClose !== -1){
+        let prc = (this.open - this.lastClose) / this.lastClose 
+        this.setState({prcChange: -prc})
+    }else if(this.timeInterval === "3M" || this.timeInterval === "1Y"){
+      this.timeStamps.push(this.lastDate)
+      this.priceData.push(String(this.lastClose))
+    }
 
-        this.priceData.pop()
-        this.timeStamps.pop()
-        this.open = this.priceData[0]
-        if(this.timeInterval === "1d"){
-            let prc = (this.open - this.lastClose) / this.lastClose 
-            this.setState({prcChange: -prc})
-        }else{
-          this.timeStamps.push(this.lastDate)
-          this.priceData.push(String(this.lastClose))
-        }
-        this.generateTimeStamps()
-        this.generateNotes()
-        this.setState({fetching:false, date: val})
-    }).catch(error => {
-      console.log(error)
-      })  
-    })   
-}
+    this.timeStamps = generateTimeStamps(this.timeStamps, this.timeInterval)
+    this.generateNotes()
+    this.setState({fetching:false})
+  }
 
-  getlastClose = () => {
-    let today = new Date()
-    const { x, ticker } = this.props
-    fetch("https://hidden-island-42423.herokuapp.com/api/"+ ticker +"&x="+x+"&f=d,o,c&i=23400&p=2d").then((response) => {return response.text()})
-    .then((response) => {
+  handleRequestError = (err) => {
+      this.errorMessage = err;
+      this.setState({displayError: true})
+  }
+
+  parseCloseRequest = (response) => {
+      let today = new Date()
       let lines = response.split('\n')
       lines.splice(0, 7).reverse()   
       lines.forEach((line, i) => {
@@ -107,55 +76,13 @@ export default class TickerCard extends React.Component {
           this.lastDate = date
         }
     })
-  })
-}
-
-  generateTimeStamps = () => {
-    let currentDay = ""
-    let currentYear = ""
-    this.timeStamps = this.timeStamps.map((date, index) => {
-      const year = date.getFullYear()
-      const month = date.getMonth() + 1
-      const day = date.getDate()
-      const hours = date.getHours()            
-      const minutes = date.getMinutes()
-      let tickValue = "" 
-      switch(this.timeInterval){
-          case "1d":
-            if(currentDay !== day){
-              currentDay = day
-              return tickValue += day + "/"+month
-          }
-          tickValue += hours+":"+minutes
-          if(tickValue.split(":")[1].length !== 2)tickValue+="0"
-          return tickValue
-          case "7d":
-              if(currentDay !== day){
-                  currentDay = day
-                  return tickValue += day + "/"+month
-              }
-              tickValue += hours+":"+minutes
-              if(tickValue.split(":")[1].length !== 2)tickValue+="0"
-              return tickValue
-          case "1M":
-            if(currentDay !== day || index % 5 === 0){
-              currentDay = day
-              tickValue += day + "/"+month + " "
-            }
-            return tickValue
-          case "3M":
-              return day +"/" + month
-          case "1Y":
-              if(currentYear !== year){
-                  tickValue += String(year).slice(-2) + " " 
-                  currentYear = year
-              }
-              return tickValue + day+"/"+month
-          default:
-              return ""
-            }   
-      })
   }
+
+  getlastClose = () => {
+    const { x, ticker } = this.props
+    let url = "https://hidden-island-42423.herokuapp.com/api/"+ticker+"&x="+x+"&f=d,o,c&i=23400&p=2d"
+    getText(url, this.parseCloseRequest, this.handleRequestError)
+}
   generateNotes() {
       this.notes = []
       let open = this.open
@@ -169,12 +96,6 @@ export default class TickerCard extends React.Component {
           this.notes.push(idx)
       });
   }
-
-
-  handleChange = (event, index, value) => { 
-      this.setState({value: index})
-  }
-
   addData(i){
     let open = this.open
     if(this.timeInterval === "1d"  && this.lastClose !== -1)
@@ -210,42 +131,12 @@ export default class TickerCard extends React.Component {
   }
 
   dateButtonClicked(value) {
-    switch(value){
-      case 0:
-        this.gran = "300";
-        this.timeInterval = "1d"
-        this.multiplier = 300
-        break;
-      case 1:
-        this.gran = "2100";
-        this.timeInterval = "7d"
-        this.multiplier = 200
-        break;
-      case 2:
-        this.gran = "57600";
-        this.timeInterval = "1M"
-        this.multiplier = 100
-        break;
-      case 3:
-        this.gran = "86640";
-        this.timeInterval = "3M"
-        this.multiplier = 60
-        break;
-      case 4:
-        this.gran = "936000"
-        this.timeInterval = "1Y"
-        this.multiplier = 30
-        break;
-      default:
-        alert("smth wng")
-    }
-
+    [this.gran, this.timeInterval, this.multiplier] = setTimeInterval(value)
     this.stop()
-    this.getData(this.URL + "&i="+this.gran+"&p="+this.timeInterval, value)
-    this.setState({timeStampDetail: this.timeInterval})
+    getText(this.URL + "&i="+this.gran+"&p="+this.timeInterval, this.parseResponse, this.handleRequestError)
+    this.setState({ date: value})
   }
   
-
   render() {
     const style = {width:"500", minWidth:"50px", margin: "30"}
     return (
@@ -263,10 +154,12 @@ export default class TickerCard extends React.Component {
           <RaisedButton label="Play" onClick={this.play} />
           <RaisedButton label="Stop" onClick={this.stop}/>
           {this.state.expanded &&
+            <div style={{float: "right"}}>
             <b 
-              style={{float: "right", color: this.state.prcChange > 0 ? "red":"green", marginTop: "12px"}}
+              style={{color: this.state.prcChange > 0 ? "red":"green", marginTop: "12px"}}
             >{String(-this.state.prcChange*100).substring(0, 5)+ "%"}
             </b>
+            </div>
           }
         </CardActions>
         <CardText expandable={true} >
@@ -284,6 +177,12 @@ export default class TickerCard extends React.Component {
               </div>
           </div>
       </CardText>
+      <Snackbar
+          open={this.state.displayError}
+          message={String(this.errorMessage)}
+          autoHideDuration={2500}
+          onRequestClose={() => this.setState({displayError: false})}
+        />
     </Card>
     );
   }

@@ -6,15 +6,31 @@ import NotePlayer from './soundplayer'
 import AutoCompleteExampleSimple from "./searchbar"
 
 let featuredStocks = [
+
+  {
+      name: "Snapchat",
+      ticker: "SNAP",
+      exchange: "NYSE" 
+  },
   {
       name: "Apple",
       ticker: "AAPL",
       exchange: "NASDAQ"
   },
   {
+    name: "Boeing Co.",
+    ticker: "BA",
+    exchange: "NYSE"
+  },
+  {
       name: "Micron",
       ticker: "MU",
       exchange: "NASDAQ"
+  },
+  {
+    name: "Facebook",
+    ticker: "FB",
+    exchange: "NASDAQ"
   },
   {
       name: "AMD",
