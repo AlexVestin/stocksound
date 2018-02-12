@@ -58,7 +58,7 @@ export function parseResponse(response, timeInterval, gran){
     lines.splice(0, 7)   
     let prev = -1
     lines.forEach((line, i) => {
-      if(timeInterval !== "1M" || i % 2 ===  1){
+      if(i % 4 ===  1){
         if(line.indexOf("TIMEZONE_OFFSET") === -1){
           let d = line.split(",")
           if(d[0].length > 10){
@@ -82,15 +82,15 @@ export function parseResponse(response, timeInterval, gran){
 export function setTimeInterval(value){
     switch(value){
         case 0:
-          return ["300", "1d", 300]
+          return ["300", "1d", 250]
         case 1:
-            return ["2100", "7d", 200]
+            return ["2100", "7d", 150]
         case 2:
-            return ["57600", "1M", 100]
+            return ["57600", "1M", 75]
         case 3:
-            return ["886640", "3M", 60]
+            return ["86640", "3M", 50]
         case 4:
-            return ["936000", "1Y", 30]
+            return ["936000", "1Y", 20]
         default:
           alert("smth wng")
     }  

@@ -21,7 +21,7 @@ export default class TickerCard extends React.Component {
       prcChange: 0,
     };
   
-    this.multiplier = 300
+    this.multiplier = 250
     this.gran = "300"
     this.timeInterval = "1d"
     this.lastClose = -1
