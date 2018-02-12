@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import AutoComplete from 'material-ui/AutoComplete';
 import RaisedButton from 'material-ui/RaisedButton/RaisedButton';
-
+import {getJson} from './networking'
 const samples = [
   "piano",
   "synth",
@@ -23,15 +23,15 @@ export default class AutoCompleteExampleSimple extends Component {
     })
   }
 
+  handleResponse = (response) => {
+    let l = response.map(a => a[0])
+    this.setState({dataSource: l}); 
+    this.searchResult = response
+  }
+
   handleUpdateInput = (value) => {
     if(value !== ""){
-      fetch("https://hidden-island-42423.herokuapp.com/stocks/"+ value).then((response) => { return response.json()})
-        .then( (response) =>  {
-            let l = response.map(a => a[0])
-            this.setState({dataSource: l}); 
-            this.searchResult = response
-          }
-        )
+      getJson("https://hidden-island-42423.herokuapp.com/stocks/"+ value, this.handleResponse, this.props.handleRequestError)
     }
   }
 
@@ -60,14 +60,14 @@ class ButtonGroup extends React.Component {
       this.state = {active: 1}
   }
   handleClick = (e) => {
-    this.setState({active: samples.indexOf(e.target.innerHTML)})
-    this.props.setVal(e.target.innerHTML)
+    this.setState({active: samples.indexOf(e)})
+    this.props.setVal(e)
   }
   render(){
       return(
           <div>            
-              <RaisedButton onClick={this.handleClick} secondary={this.state.active === 0}>piano</RaisedButton>
-              <RaisedButton onClick={this.handleClick} secondary={this.state.active === 1}>synth</RaisedButton>
+              <RaisedButton onClick={() => this.handleClick("piano")} secondary={this.state.active === 0}>piano</RaisedButton>
+              <RaisedButton onClick={() => this.handleClick("synth")} secondary={this.state.active === 1}>synth</RaisedButton>
           </div>
       )
   }

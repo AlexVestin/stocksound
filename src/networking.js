@@ -18,6 +18,28 @@ export function getText(url, success, error){
     })
 }
 
+export function getFile(url, success, error){
+    fetch(url, header).then(response => {
+        response = handleResponse(response)
+        return response.blob();
+    }).then(response=> {
+        success(response)
+    }).catch(err => {
+        error(err)
+    })
+}
+
+export function getJson(url, success, error){
+    fetch(url, header).then(response => {
+        response = handleResponse(response)
+        return response.json();
+    }).then(response=> {
+        success(response)
+    }).catch(err => {
+        error(err)
+    })
+}
+
 function handleResponse(response){
     if (!response.ok) {
         throw Error(response.statusText);

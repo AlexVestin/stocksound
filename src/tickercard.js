@@ -3,7 +3,6 @@ import {Card, CardActions, CardHeader, CardText} from 'material-ui/Card';
 import RaisedButton from 'material-ui/RaisedButton';
 import FlatButton from 'material-ui/FlatButton';
 import Graph from './graph'
-import Snackbar from 'material-ui/Snackbar';
 import {getText} from './networking'
 import {generateTimeStamps, parseResponse, setTimeInterval} from './parseutil'
 export default class TickerCard extends React.Component {
@@ -20,7 +19,6 @@ export default class TickerCard extends React.Component {
       data: [], 
       timeStamps: [],
       prcChange: 0,
-      displayError: false
     };
   
     this.multiplier = 300
@@ -32,7 +30,6 @@ export default class TickerCard extends React.Component {
     this.priceData = []
     this.timeStamps = []
     this.URL = "https://hidden-island-42423.herokuapp.com/api/"+props.ticker+"&x="+props.x+"&f=d,o"
-    this.errorMessage = "Something went wrong"
   }
 
   componentDidMount = (props) => {
@@ -56,12 +53,10 @@ export default class TickerCard extends React.Component {
 
     this.timeStamps = generateTimeStamps(this.timeStamps, this.timeInterval)
     this.generateNotes()
-    this.setState({fetching:false})
   }
 
   handleRequestError = (err) => {
-      this.errorMessage = err;
-      this.setState({displayError: true})
+    this.props.handleRequestError(err)
   }
 
   parseCloseRequest = (response) => {
@@ -105,7 +100,7 @@ export default class TickerCard extends React.Component {
     this.setState({
       prcChange: prc,
       timeStamps: [...this.state.timeStamps, this.timeStamps[i-1]]}
-      ,() => this.setState({data: [...this.state.data, Number(this.priceData[i-1])]}))
+      ,() =>{ this.setState({data: [...this.state.data, Number(this.priceData[i-1])]})})
   }
 
   handleExpandChange = (expanded) => {
@@ -115,13 +110,12 @@ export default class TickerCard extends React.Component {
   };
 
   clearData(){
-    let prc = 0
-    if(this.timeInterval === "1d"  && this.lastClose !== -1)
-      prc = (this.open - this.lastClose) / this.lastClose 
+    let prc = 0          
     this.setState({data: [], timeStamps: [], prcChange: -prc})
   }
 
   stop(){
+    this.setState({prcChange: 0})
     this.props.stop(this.props.ticker)
   }
 
@@ -166,7 +160,7 @@ export default class TickerCard extends React.Component {
           <Graph className="card-graph" data={this.state.data} timeStamps={this.state.timeStamps}></Graph>
           <div className="card-toolbar-wrapper">
               <div className="card-toolbar-text">
-                {"Exaggeration: x" + this.multiplier}
+                {"Sensitivity: x" + this.multiplier}
               </div>
               <div className="date-button-group">         
                 <FlatButton style={style} primary={this.state.date === 0} onClick={() => this.dateButtonClicked(0)}>1d</FlatButton>
@@ -177,12 +171,6 @@ export default class TickerCard extends React.Component {
               </div>
           </div>
       </CardText>
-      <Snackbar
-          open={this.state.displayError}
-          message={String(this.errorMessage)}
-          autoHideDuration={2500}
-          onRequestClose={() => this.setState({displayError: false})}
-        />
     </Card>
     );
   }

@@ -1,9 +1,9 @@
 
 
-
+import {getFile} from './networking'
 const BASE_VALUE = (5*12) + 1 
 export default class SoundPlayer {
-    constructor(callback){
+    constructor(callback, errCallback){
         this.context = new AudioContext();
         this.buffers = {}
 
@@ -12,6 +12,7 @@ export default class SoundPlayer {
         this.stop = this.stop.bind(this)
 
         this.cb = callback;
+        this.errCallback = errCallback
     }
 
     play(notes){
@@ -27,8 +28,7 @@ export default class SoundPlayer {
             let val = BASE_VALUE+note
             if(!(val in this.buffers)){
                 fetched = true
-                fetch(this.sample+"s/"+val+".mp3").then((response) => { return response.blob() })
-                .then(response => {
+                let add = (response) => {
                     let fileReader = new FileReader();
                     fileReader.onloadend = () => {
                         this.context.decodeAudioData(fileReader.result, function(buffer) {
@@ -37,7 +37,8 @@ export default class SoundPlayer {
                         }.bind(this))
                     }
                     fileReader.readAsArrayBuffer(response);
-                })
+                }
+                getFile(this.sample+"s/"+val+".mp3", add, this.errCallback)
             }
         })
         if(!fetched)this.playTimer.play(notes, this.buffers, this.context)
