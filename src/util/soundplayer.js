@@ -29,14 +29,10 @@ export default class SoundPlayer {
             if(!(val in this.buffers)){
                 fetched = true
                 let add = (response) => {
-                    let fileReader = new FileReader();
-                    fileReader.onloadend = () => {
-                        this.context.decodeAudioData(fileReader.result, function(buffer) {
-                            this.buffers[val] = buffer
-                            if(++count === length)this.playTimer.play(notes, this.buffers, this.context)
-                        }.bind(this))
-                    }
-                    fileReader.readAsArrayBuffer(response);
+                    this.context.decodeAudioData(response, function(buffer) {
+                        this.buffers[val] = buffer
+                        if(++count === length)this.playTimer.play(notes, this.buffers, this.context)
+                    }.bind(this))
                 }
                 getFile(this.sample+"s/"+val+".mp3", add, this.errCallback)
             }

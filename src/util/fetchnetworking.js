@@ -1,5 +1,3 @@
-import axios from 'axios'
-
 const header = { 
     method: "GET",
     mode: 'cors',
@@ -10,9 +8,9 @@ const header = {
     }
 }
 export function getText(url, success, error){
-    axios.get(url, header).then(response => {
+    fetch(url, header).then(response => {
         response = handleResponse(response)
-        return response.data;
+        return response.text();
     }).then(response=> {
         success(response)
     }).catch(err => {
@@ -21,9 +19,9 @@ export function getText(url, success, error){
 }
 
 export function getFile(url, success, error){
-    axios.get(url, {responseType: 'arraybuffer'}).then(response => {
+    fetch(url, header).then(response => {
         response = handleResponse(response)
-        return response.data;
+        return response.blob();
     }).then(response=> {
         success(response)
     }).catch(err => {
@@ -32,9 +30,9 @@ export function getFile(url, success, error){
 }
 
 export function getJson(url, success, error){
-    axios.get(url, header).then(response => {
+    fetch(url, header).then(response => {
         response = handleResponse(response)
-        return response.data;
+        return response.json();
     }).then(response=> {
         success(response)
     }).catch(err => {
@@ -43,7 +41,7 @@ export function getJson(url, success, error){
 }
 
 function handleResponse(response){
-    if (!response.statues === 200) {
+    if (!response.ok) {
         throw Error(response.statusText);
     }
 
