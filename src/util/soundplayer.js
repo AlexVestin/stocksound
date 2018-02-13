@@ -2,23 +2,50 @@
 
 import {getFile} from './networking'
 
+function initiOS() {
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (window.AudioContext) {
+            window.audioContext = new window.AudioContext();
+        }
+        var fixAudioContext = function (e) {
+            if (window.audioContext) {
+                // Create empty buffer
+                var buffer = window.audioContext.createBuffer(1, 1, 22050);
+                var source = window.audioContext.createBufferSource();
+                source.buffer = buffer;
+                // Connect to output (speakers)
+                source.connect(window.audioContext.destination);
+                // Play sound
+                if (source.start) {
+                    source.start(0);
+                } else if (source.play) {
+                    source.play(0);
+                } else if (source.noteOn) {
+                    source.noteOn(0);
+                }
+            }
+            // Remove events
+            document.removeEventListener('touchstart', fixAudioContext);
+            document.removeEventListener('touchend', fixAudioContext);
+        };
+        document.addEventListener('touchstart', fixAudioContext);
+        document.addEventListener('touchend', fixAudioContext);
+}
+
 const BASE_VALUE = (5*12) + 1 
 export default class SoundPlayer {
     constructor(callback, errCallback){
-        this.context= new (window.AudioContext || window.webkitAudioContext)();
+        initiOS()
+
+        this.context= window.audioContext
         if(!this.context)
             errCallback("AudioContext is not supported in your browser")
-        
-        //iOS left behind
-        if(!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform))
-            alert("Error: iOS doesn't allow playing AudioContext sounds (without touch permission)")
 
         this.buffers = {}
 
         this.sample = "synth"
         this.play = this.play.bind(this)
         this.stop = this.stop.bind(this)
-
         this.cb = callback;
         this.errCallback = errCallback
     }
