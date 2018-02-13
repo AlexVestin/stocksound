@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
+import './style/index.css';
 import App from './App';
-import registerServiceWorker from './registerServiceWorker'
+import registerServiceWorker from './util/registerServiceWorker'
 
 import injectTapEventPlugin from 'react-tap-event-plugin';
 injectTapEventPlugin();

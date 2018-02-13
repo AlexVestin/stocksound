@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import './App.css';
+import './style/App.css';
 
-import TickerCard from "./tickercard"
-import NotePlayer from './soundplayer'
+import TickerCard from "./card/tickercard"
+import NotePlayer from './util/soundplayer'
 import AutoCompleteExampleSimple from "./searchbar"
 import Snackbar from 'material-ui/Snackbar';
 

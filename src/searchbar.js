@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import AutoComplete from 'material-ui/AutoComplete';
 import RaisedButton from 'material-ui/RaisedButton/RaisedButton';
-import {getJson} from './networking'
+import {getJson} from './util/networking'
 const samples = [
   "piano",
   "synth",
@@ -32,6 +32,8 @@ export default class AutoCompleteExampleSimple extends Component {
   handleUpdateInput = (value) => {
     if(value !== ""){
       getJson("https://hidden-island-42423.herokuapp.com/stocks/"+ value, this.handleResponse, this.props.handleRequestError)
+    }else{
+      this.setState({dataSource: []})
     }
   }
 

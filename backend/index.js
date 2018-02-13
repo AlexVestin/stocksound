@@ -3,7 +3,7 @@ const app = express()
 const serverPort = 3003
 const https = require("https")
 var cors = require('cors')
-
+var apicache = require("apicache")
 var fs = require('fs');
 const PriorityQueue = require("./priorityqueue.js")
 const priorityQueue = new PriorityQueue()
@@ -11,9 +11,13 @@ const priorityQueue = new PriorityQueue()
 var stocks = JSON.parse(fs.readFileSync('stocks.json', 'utf8'));
 var port = process.env.PORT || serverPort;
 app.use(cors());
+let cache = apicache.middleware
+
+let USE_PRIO_QUEUE = false
+let searches = {}
 
 
-app.get('/api/:url', (request, response) => {
+app.get('/api/:url', cache('20 min'), (request, response) => {
     const url ='https://finance.google.com/finance/getprices?q=' + request.params.url;
     https.get(url, res => {
         res.setEncoding("utf8");
@@ -33,9 +37,14 @@ app.get('/stocks/:searchstring', (request, response) => {
 })
 function test(searchstring){
     let match = priorityQueue.get(searchstring)
-    if(match !== undefined)
-        return match.result
-    
+    if(USE_PRIO_QUEUE){
+        if(match !== undefined)
+            return match.result
+    }else{
+        if(searchstring in searches){
+            return searches[searchstring]
+        } 
+    }
     let matchStrings = []
     stocks["stocks"].forEach(stock => {
         let sim1 = similarity(stock[0], searchstring) 
@@ -49,8 +58,13 @@ function test(searchstring){
         }
     });
 
+    console.log("cachemiss")
     matchStrings = matchStrings.sort(Comparator).slice(0, 5).map((a) => a[1]);
-    priorityQueue.push({key: searchstring, result: matchStrings})
+    if(USE_PRIO_QUEUE){
+        priorityQueue.push({key: searchstring, result: matchStrings})
+    }else{
+        searches[searchstring] = matchStrings
+    }
     return matchStrings
 }
 

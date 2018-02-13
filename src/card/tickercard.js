@@ -2,9 +2,11 @@ import React from 'react';
 import {Card, CardActions, CardHeader, CardText} from 'material-ui/Card';
 import RaisedButton from 'material-ui/RaisedButton';
 import FlatButton from 'material-ui/FlatButton';
+import CircularProgress from 'material-ui/CircularProgress';
+
 import Graph from './graph'
-import {getText} from './networking'
-import {generateTimeStamps, parseResponse, setTimeInterval} from './parseutil'
+import {getText} from '../util/networking'
+import {generateTimeStamps, parseResponse, setTimeInterval} from '../util/parseutil'
 export default class TickerCard extends React.Component {
   
   constructor(props) {
@@ -19,6 +21,7 @@ export default class TickerCard extends React.Component {
       data: [], 
       timeStamps: [],
       prcChange: 0,
+      fetching: false
     };
   
     this.multiplier = 250
@@ -33,11 +36,13 @@ export default class TickerCard extends React.Component {
   }
 
   componentDidMount = (props) => {
+    this.setState({fetching:true})
     this.getlastClose()
     getText(this.URL +"&i=300&p=1d", this.parseResponse, this.handleRequestError)  
   }
 
   parseResponse = (response) => {
+   
     let data = parseResponse(response, this.timeInterval, this.gran)
     this.priceData = data[0]
     this.timeStamps = data[1]
@@ -46,13 +51,12 @@ export default class TickerCard extends React.Component {
     if(this.timeInterval === "1d" && this.lastClose !== -1){
         let prc = (this.open - this.lastClose) / this.lastClose 
         this.setState({prcChange: -prc})
-    }else if(this.timeInterval === "3M" || this.timeInterval === "1Y"){
-      this.timeStamps.push(this.lastDate)
-      this.priceData.push(String(this.lastClose))
     }
 
     this.timeStamps = generateTimeStamps(this.timeStamps, this.timeInterval)
     this.generateNotes()
+   
+    this.setState({fetching: false})
   }
 
   handleRequestError = (err) => {
@@ -74,6 +78,7 @@ export default class TickerCard extends React.Component {
   }
 
   getlastClose = () => {
+    this.setState({fetching:true})
     const { x, ticker } = this.props
     let url = "https://hidden-island-42423.herokuapp.com/api/"+ticker+"&x="+x+"&f=d,o,c&i=23400&p=2d"
     getText(url, this.parseCloseRequest, this.handleRequestError)
@@ -128,7 +133,7 @@ export default class TickerCard extends React.Component {
     [this.gran, this.timeInterval, this.multiplier] = setTimeInterval(value)
     this.stop()
     getText(this.URL + "&i="+this.gran+"&p="+this.timeInterval, this.parseResponse, this.handleRequestError)
-    this.setState({ date: value})
+    this.setState({fetching:true, date: value})
   }
   
   render() {
@@ -155,6 +160,7 @@ export default class TickerCard extends React.Component {
             </b>
             </div>
           }
+          {this.state.fetching && <CircularProgress style={{position: "absolute", marginTop: 3}} size={30} thickness={3} />}
         </CardActions>
         <CardText expandable={true} >
           <Graph className="card-graph" data={this.state.data} timeStamps={this.state.timeStamps}></Graph>

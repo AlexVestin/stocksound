@@ -58,7 +58,7 @@ export function parseResponse(response, timeInterval, gran){
     lines.splice(0, 7)   
     let prev = -1
     lines.forEach((line, i) => {
-      if(i % 4 ===  1){
+      if(i % 4 ===  0){
         if(line.indexOf("TIMEZONE_OFFSET") === -1){
           let d = line.split(",")
           if(d[0].length > 10){
