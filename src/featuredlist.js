@@ -47,7 +47,6 @@ let featuredStocks = [
 class FeaturedList extends Component {
   constructor(props){
     super(props)
-
     this.dataAdded = (i) => { this.tickerClasses[this.currentTicker].addData(i)}
     
     this.soundPlayer = new NotePlayer(this.dataAdded, this.handleError)
@@ -62,7 +61,12 @@ class FeaturedList extends Component {
   }
 
   addTicker = (ticker, name, exchange) => {
-    this.setState({tickers:  [{name: name, ticker, exchange}, ...this.state.tickers]})
+    if(this.state.tickers.find(t => {return t.name === name}) === undefined){
+      this.errorMessage = ticker + " is already added to the list"
+      this.setState({displayError: true})
+    }else{
+      this.setState({tickers:  [{name: name, ticker, exchange}, ...this.state.tickers]})
+    }
   }
 
   play(buffer, ticker){
@@ -101,6 +105,7 @@ class FeaturedList extends Component {
           </div>
 
           <Snackbar
+            style={{textAlign: "center"}}
             open={this.state.displayError}
             message={String(this.errorMessage)}
             autoHideDuration={2500}
