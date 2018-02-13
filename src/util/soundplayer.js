@@ -1,10 +1,14 @@
 
 
 import {getFile} from './networking'
+
 const BASE_VALUE = (5*12) + 1 
 export default class SoundPlayer {
     constructor(callback, errCallback){
-        this.context = new AudioContext();
+        this.context= new (window.AudioContext || window.webkitAudioContext)();
+        if(!this.context)
+            errCallback("AudioContext is not supported in your browser")
+        
         this.buffers = {}
 
         this.sample = "synth"
