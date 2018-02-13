@@ -42,7 +42,7 @@ export default class TickerCard extends React.Component {
   }
 
   parseResponse = (response) => {
-   
+    
     let data = parseResponse(response, this.timeInterval, this.gran)
     this.priceData = data[0]
     this.timeStamps = data[1]
@@ -55,7 +55,7 @@ export default class TickerCard extends React.Component {
 
     this.timeStamps = generateTimeStamps(this.timeStamps, this.timeInterval)
     this.generateNotes()
-   
+    
     this.setState({fetching: false})
   }
 
@@ -137,7 +137,7 @@ export default class TickerCard extends React.Component {
   }
   
   render() {
-    const style = {width:"500", minWidth:"50px", margin: "30"}
+    const style = {minWidth:"40px" }
     return (
       <Card 
         expanded={this.state.expanded}

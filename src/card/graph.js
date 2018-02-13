@@ -11,7 +11,7 @@ export default class Chart extends React.Component {
     };
 
     render(){
-        const view = [620, 320];
+        const view = [580, 320];
         const trbl = [0, 0, 0, 0]
         const horizontalAxisHeight = 30;
         const verticalAxisWidth = 42;

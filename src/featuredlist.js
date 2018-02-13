@@ -61,7 +61,7 @@ class FeaturedList extends Component {
   }
 
   addTicker = (ticker, name, exchange) => {
-    if(this.state.tickers.find(t => {return t.name === name}) === undefined){
+    if(this.state.tickers.find(t => {return t.ticker === ticker}) !== undefined){
       this.errorMessage = ticker + " is already added to the list"
       this.setState({displayError: true})
     }else{

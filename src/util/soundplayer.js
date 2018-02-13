@@ -9,6 +9,10 @@ export default class SoundPlayer {
         if(!this.context)
             errCallback("AudioContext is not supported in your browser")
         
+        //iOS left behind
+        if(!!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform))
+            alert("Error: iOS doesn't allow playing AudioContext sounds (without touch permission)")
+
         this.buffers = {}
 
         this.sample = "synth"

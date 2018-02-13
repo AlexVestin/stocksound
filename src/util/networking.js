@@ -31,17 +31,6 @@ export function getFile(url, success, error){
     })
 }
 
-export function getJson(url, success, error){
-    axios.get(url, header).then(response => {
-        response = handleResponse(response)
-        return response.data;
-    }).then(response=> {
-        success(response)
-    }).catch(err => {
-        error(err)
-    })
-}
-
 function handleResponse(response){
     if (!response.statues === 200) {
         throw Error(response.statusText);
