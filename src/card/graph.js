@@ -3,6 +3,13 @@ import {scaleLinear, extent, line as d3Line, curveLinear} from 'd3'
 import React from 'react'
 import PropTypes from 'prop-types'
 
+/**
+ * @author: https://codepen.io/clindsey/
+ * @url: https://codepen.io/clindsey/post/animating-svg-charts-built-with-react-and-d3
+ * 
+ * slightly modified for custom timestamps
+ */
+
 
 export default class Chart extends React.Component {
     static propTypes = {

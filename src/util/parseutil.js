@@ -1,7 +1,9 @@
 
-/*
-    dont look inisde here
-*/
+/**
+ * Generates timestamps for use in the graph
+ * @param timeStamps: Date-object array
+ * @param timeInterval: window-size for datafetched, eg 1d or 3M
+ */
 export function generateTimeStamps(timestamps, timeInterval){
     let currentDay = ""
     let currentYear = ""
@@ -13,42 +15,69 @@ export function generateTimeStamps(timestamps, timeInterval){
       const hours = date.getHours()            
       const minutes = date.getMinutes()
       let tickValue = "" 
+      
+      let newDay = currentDay !== day
+      currentDay = day
+
+      let getHM = () => {
+        let tv=hours+":"+minutes
+        if(tv.split(":")[1].length !== 2)tv+="0"
+        return tv
+      } 
+
       switch(timeInterval){
           case "1d":
-            if(currentDay !== day){
-              currentDay = day
-              return tickValue += day + "/"+month
-          }
-          tickValue += hours+":"+minutes
-          if(tickValue.split(":")[1].length !== 2)tickValue+="0"
-          return tickValue
           case "7d":
-              if(currentDay !== day){
-                  currentDay = day
-                  return tickValue += day + "/"+month
-              }
-              tickValue += hours+":"+minutes
-              if(tickValue.split(":")[1].length !== 2)tickValue+="0"
-              return tickValue
+                return newDay ? day+"/"+month : getHM()
           case "1M":
-            if(currentDay !== day || index % 5 === 0){
-              currentDay = day
-              tickValue += day + "/"+month + " "
-            }
-            return tickValue
           case "3M":
-              return day +"/" + month
+              return day+"/"+month
           case "1Y":
               if(currentYear !== year){
                   tickValue += String(year).slice(-2) + " " 
                   currentYear = year
               }
-              return tickValue + day+"/"+month
+              return tickValue+day+"/"+month
           default:
               return ""
             }   
       })
 }
+
+/*
+    Returns the closeprice from the last open day of trading
+*/
+export function parseClose(response){
+    let today = new Date()
+    let lines = response.split('\n')
+    let close = [new Date("July 21, 1983 01:15:00"), 0]
+    
+
+    lines.splice(0, 7) 
+    lines.forEach((line, i) => {
+        let [timeStamp, price] = line.split(",")
+        let date = new Date(Number(timeStamp.slice(1)) * 1000)
+        if(date.getDate() !== today.getDate() && date.getHours() + (today.getTimezoneOffset() % 60)  === 22){
+            if(Date.parse(date) > Date.parse(close[0])){
+                close = [date, Number(price)]
+            }
+            
+        }
+    })
+
+
+    return close
+}
+
+/*
+    returns a list of prices and a list of timestamps from API request
+    First seven lines are not data
+
+    Data comes in format "Unixtimesamp,price\n"
+    Disregards timezone offsets and add a datapoint every fourth sample
+    Some lines have '1...n'instead of a UNIX timestamp so we keep track 
+    of the previous and add the timeinterval of the points to the new data  
+*/
 
 export function parseResponse(response, timeInterval, gran){
     var priceData = []
@@ -57,27 +86,33 @@ export function parseResponse(response, timeInterval, gran){
     let lines = response.split('\n')
     lines.splice(0, 7)   
     let prev = -1
+
+    let spacing = 2
     lines.forEach((line, i) => {
-      if(i % 4 ===  0){
-        if(line.indexOf("TIMEZONE_OFFSET") === -1){
-          let d = line.split(",")
-          if(d[0].length > 10){
-            prev = Number(d[0].slice(1))* 1000 
+      if((i % spacing === 0 || i === lines.length - 1)  && line.indexOf("TIMEZONE_OFFSET") === -1) {
+          let [timeStamp, price] = line.split(",")
+          if(timeStamp.length > 10){
+            prev = Number(timeStamp.slice(1)) * 1000 
             timestamps.push(new Date(prev))
           }else{
-            prev += gran*1000
+            prev += gran*1000*spacing
             timestamps.push(new Date(prev))
           }
-          priceData.push(d[1])
-        }  
+          
+          priceData.push(Number(price))
       } 
     })
 
+
     priceData.pop()
     timestamps.pop()
-
+    
     return [priceData, timestamps]
 }
+
+/*
+    returns [time between datapoints in seconds, timeInterval, noteScaleMultiplier]
+*/
 
 export function setTimeInterval(value){
     switch(value){

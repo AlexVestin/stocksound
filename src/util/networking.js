@@ -10,6 +10,7 @@ const header = {
     }
 }
 export function getText(url, success, error){
+
     axios.get(url, header).then(response => {
         response = handleResponse(response)
         return response.data;

@@ -70,8 +70,8 @@ class FeaturedList extends Component {
   }
 
   play(buffer, ticker){
-    this.currentTicker = ticker
     this.tickerClasses[ticker].clearData()
+    this.currentTicker = ticker
     this.soundPlayer.play(buffer)
   }
   stop(ticker){

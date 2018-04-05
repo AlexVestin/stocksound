@@ -102,17 +102,18 @@ class PlayTimer {
 
     play(notes, buffers, ctx){
         if(this.playSounds){
-            let val = BASE_VALUE+notes[this.i] 
+            let val = BASE_VALUE+notes[this.i];
             setTimeout(() => {
-                if(this.i <= notes.length){
-                    this.cb(this.i)
+                if(this.i <= notes.length - 1){
+                    this.cb(this.i);
                     let source = ctx.createBufferSource();
-                    source.buffer = buffers[val]
+                    source.buffer = buffers[val];
                     source.connect( ctx.destination );
                     source.start(0);
-                    this.play(notes, buffers, ctx)
+                    this.play(notes, buffers, ctx);
+                    this.i++;
                 }
-            }, 60 + Math.floor(Math.random() * 200) + this.i++)
+            }, 60 + Math.floor(Math.random() * 200))
         }
     }
 }

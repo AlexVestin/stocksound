@@ -6,7 +6,7 @@ import CircularProgress from 'material-ui/CircularProgress';
 
 import Graph from './graph'
 import {getText} from '../util/networking'
-import {generateTimeStamps, parseResponse, setTimeInterval} from '../util/parseutil'
+import {generateTimeStamps, parseResponse, setTimeInterval, parseClose} from '../util/parseutil'
 export default class TickerCard extends React.Component {
   
   constructor(props) {
@@ -17,7 +17,7 @@ export default class TickerCard extends React.Component {
 
     this.state = {
       expanded: false,       
-      date: 0, 
+      timeIntervalIndex: 0, 
       data: [], 
       timeStamps: [],
       prcChange: 0,
@@ -37,6 +37,7 @@ export default class TickerCard extends React.Component {
 
   componentDidMount = (props) => {
     this.setState({fetching:true})
+    
     this.getlastClose()
     getText(this.URL +"&i=300&p=1d", this.parseResponse, this.handleRequestError)  
   }
@@ -48,14 +49,15 @@ export default class TickerCard extends React.Component {
     this.timeStamps = data[1]
     this.open = this.priceData[0]
     
+    /*
     if(this.timeInterval === "1d" && this.lastClose !== -1){
         let prc = (this.open - this.lastClose) / this.lastClose 
         this.setState({prcChange: -prc})
     }
+    */
 
     this.timeStamps = generateTimeStamps(this.timeStamps, this.timeInterval)
     this.generateNotes()
-    
     this.setState({fetching: false})
   }
 
@@ -64,48 +66,47 @@ export default class TickerCard extends React.Component {
   }
 
   parseCloseRequest = (response) => {
-      let today = new Date()
-      let lines = response.split('\n')
-      lines.splice(0, 7).reverse()   
-      lines.forEach((line, i) => {
-        let d = line.split(",")
-        let date = new Date(Number(d[0].slice(1)) * 1000)
-        if(date.getDate() !== today.getDate() && date.getHours() + (today.getTimezoneOffset() % 60)  === 22){
-          this.lastClose = Number(d[1])
-          this.lastDate = date
-        }
-    })
-  }
+    let lc = parseClose(response)
+    if(lc !== undefined)
+      [this.lastDate, this.lastClose] = lc
+
+  } 
 
   getlastClose = () => {
-    this.setState({fetching:true})
     const { x, ticker } = this.props
-    let url = "https://hidden-island-42423.herokuapp.com/api/"+ticker+"&x="+x+"&f=d,o,c&i=23400&p=2d"
+    let url = "https://hidden-island-42423.herokuapp.com/api/"+ticker+"&x="+x+"&f=d,c&i=23400&p=2d"
     getText(url, this.parseCloseRequest, this.handleRequestError)
 }
   generateNotes() {
       this.notes = []
       let open = this.open
+      /*
       if(this.timeInterval === "1d" && this.lastClose !== -1)
         open = this.lastClose
+      */
+
       this.priceData.forEach(val => {
           let idx = Math.floor(((val-open) / open) * this.multiplier)
+
+          //Clamp as not to go above/below available notes 
           if(idx > 60)idx=60
           if(idx < -60)idx=-60
-
           this.notes.push(idx)
       });
+
   }
   addData(i){
     let open = this.open
+    /*
     if(this.timeInterval === "1d"  && this.lastClose !== -1)
       open = this.lastClose
-    let prc = (open - this.priceData[i-1]) / open;
+    */
+    let prc = (open - this.priceData[i]) / open;
 
     this.setState({
       prcChange: prc,
-      timeStamps: [...this.state.timeStamps, this.timeStamps[i-1]]}
-      ,() =>{ this.setState({data: [...this.state.data, Number(this.priceData[i-1])]})})
+      timeStamps: [...this.state.timeStamps, this.timeStamps[i]]}
+      ,() =>{ this.setState({data: [...this.state.data, Number(this.priceData[i])]})})
   }
 
   handleExpandChange = (expanded) => {
@@ -133,7 +134,7 @@ export default class TickerCard extends React.Component {
     [this.gran, this.timeInterval, this.multiplier] = setTimeInterval(value)
     this.stop()
     getText(this.URL + "&i="+this.gran+"&p="+this.timeInterval, this.parseResponse, this.handleRequestError)
-    this.setState({fetching:true, date: value})
+    this.setState({fetching:true, timeIntervalIndex: value})
   }
   
   render() {
@@ -152,6 +153,8 @@ export default class TickerCard extends React.Component {
         <CardActions>
           <RaisedButton label="Play" onClick={this.play} />
           <RaisedButton label="Stop" onClick={this.stop}/>
+
+          
           {this.state.expanded &&
             <div style={{float: "right"}}>
             <b 
@@ -169,11 +172,11 @@ export default class TickerCard extends React.Component {
                 {"Sensitivity: x" + this.multiplier}
               </div>
               <div className="date-button-group">         
-                <FlatButton style={style} primary={this.state.date === 0} onClick={() => this.dateButtonClicked(0)}>1d</FlatButton>
-                <FlatButton style={style} primary={this.state.date === 1} onClick={() => this.dateButtonClicked(1)}>1w</FlatButton>
-                <FlatButton style={style} primary={this.state.date === 2} onClick={() => this.dateButtonClicked(2)}>1m</FlatButton>
-                <FlatButton style={style} primary={this.state.date === 3} onClick={() => this.dateButtonClicked(3)}>3m</FlatButton>
-                <FlatButton style={style} primary={this.state.date === 4} onClick={() => this.dateButtonClicked(4)}>1y</FlatButton>
+                <FlatButton style={style} primary={this.state.timeIntervalIndex === 0} onClick={() => this.dateButtonClicked(0)}>1d</FlatButton>
+                <FlatButton style={style} primary={this.state.timeIntervalIndex === 1} onClick={() => this.dateButtonClicked(1)}>1w</FlatButton>
+                <FlatButton style={style} primary={this.state.timeIntervalIndex === 2} onClick={() => this.dateButtonClicked(2)}>1m</FlatButton>
+                <FlatButton style={style} primary={this.state.timeIntervalIndex === 3} onClick={() => this.dateButtonClicked(3)}>3m</FlatButton>
+                <FlatButton style={style} primary={this.state.timeIntervalIndex === 4} onClick={() => this.dateButtonClicked(4)}>1y</FlatButton>
               </div>
           </div>
       </CardText>
