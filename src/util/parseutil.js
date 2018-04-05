@@ -65,7 +65,6 @@ export function parseClose(response){
         }
     })
 
-
     return close
 }
 
@@ -87,7 +86,7 @@ export function parseResponse(response, timeInterval, gran){
     lines.splice(0, 7)   
     let prev = -1
 
-    let spacing = 2
+    let spacing = 4
     lines.forEach((line, i) => {
       if((i % spacing === 0 || i === lines.length - 1)  && line.indexOf("TIMEZONE_OFFSET") === -1) {
           let [timeStamp, price] = line.split(",")
