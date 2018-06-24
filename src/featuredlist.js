@@ -13,24 +13,20 @@ let featuredStocks = [
       exchange: "NYSE" 
   },
   {
+    name: "iQIYI",
+    ticker: "IQ",
+    exchange: "NASDAQ" 
+  },
+  {
       name: "Apple Inc",
       ticker: "AAPL",
       exchange: "NASDAQ"
   },
-  {
-    name: "Boeing Co",
-    ticker: "BA",
-    exchange: "NYSE"
-  },
+
   {
       name: "Micron Technology Inc",
       ticker: "MU",
       exchange: "NASDAQ"
-  },
-  {
-    name: "Facebook Inc",
-    ticker: "FB",
-    exchange: "NASDAQ"
   },
   {
       ticker: "AMD",

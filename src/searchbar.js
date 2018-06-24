@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import AutoComplete from 'material-ui/AutoComplete';
 import RaisedButton from 'material-ui/RaisedButton/RaisedButton';
 import {getText} from './util/networking'
+
 const samples = [
   "piano",
   "synth",
@@ -59,7 +60,7 @@ export default class AutoCompleteExampleSimple extends Component {
 class ButtonGroup extends React.Component {
   constructor(props){
       super(props)
-      this.state = {active: 1}
+      this.state = {active: 0}
   }
   handleClick = (e) => {
     this.setState({active: samples.indexOf(e)})

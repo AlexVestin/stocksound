@@ -45,6 +45,7 @@ export default class TickerCard extends React.Component {
   parseResponse = (response) => {
     
     let data = parseResponse(response, this.timeInterval, this.gran)
+    
     this.priceData = data[0]
     this.timeStamps = data[1]
     this.open = this.priceData[0]
@@ -105,8 +106,8 @@ export default class TickerCard extends React.Component {
 
     this.setState({
       prcChange: prc,
-      timeStamps: [...this.state.timeStamps, this.timeStamps[i]]}
-      ,() =>{ this.setState({data: [...this.state.data, Number(this.priceData[i])]})})
+      timeStamps: [...this.state.timeStamps, this.timeStamps[i]]},
+      () =>{ this.setState({data: [...this.state.data, Number(this.priceData[i])]})})
   }
 
   handleExpandChange = (expanded) => {
@@ -169,7 +170,7 @@ export default class TickerCard extends React.Component {
           <Graph className="card-graph" data={this.state.data} timeStamps={this.state.timeStamps}></Graph>
           <div className="card-toolbar-wrapper">
               <div className="card-toolbar-text">
-                {"Sensitivity: x" + this.multiplier}
+                {"Note amplitude: x" + this.multiplier}
               </div>
               <div className="date-button-group">         
                 <FlatButton style={style} primary={this.state.timeIntervalIndex === 0} onClick={() => this.dateButtonClicked(0)}>1d</FlatButton>

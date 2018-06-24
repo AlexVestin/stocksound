@@ -8,7 +8,8 @@ export function generateTimeStamps(timestamps, timeInterval){
     let currentDay = ""
     let currentYear = ""
 
-    return timestamps.map((date, index) => {
+    return timestamps.map(date => {
+      
       const year = date.getFullYear()
       const month = date.getMonth() + 1
       const day = date.getDate()
@@ -27,8 +28,8 @@ export function generateTimeStamps(timestamps, timeInterval){
 
       switch(timeInterval){
           case "1d":
+            return newDay ? day+"/"+month : getHM()
           case "7d":
-                return newDay ? day+"/"+month : getHM()
           case "1M":
           case "3M":
               return day+"/"+month
@@ -87,8 +88,9 @@ export function parseResponse(response, timeInterval, gran){
     let prev = -1
 
     let spacing = 4
+
     lines.forEach((line, i) => {
-      if((i % spacing === 0 || i === lines.length - 1)  && line.indexOf("TIMEZONE_OFFSET") === -1) {
+        if((i % spacing === 0 || i === lines.length - 2)  && line.indexOf("TIMEZONE_OFFSET") === -1) {
           let [timeStamp, price] = line.split(",")
           if(timeStamp.length > 10){
             prev = Number(timeStamp.slice(1)) * 1000 
@@ -102,10 +104,12 @@ export function parseResponse(response, timeInterval, gran){
       } 
     })
 
-
-    priceData.pop()
-    timestamps.pop()
+    if(timeInterval === "1d") {
+        priceData.pop()
+        timestamps.pop()
+    }
     
+    console.log(timestamps)
     return [priceData, timestamps]
 }
 
@@ -120,9 +124,9 @@ export function setTimeInterval(value){
         case 1:
             return ["2100", "7d", 150]
         case 2:
-            return ["57600", "1M", 75]
+            return ["27600", "1M", 75]
         case 3:
-            return ["86640", "3M", 50]
+            return ["66640", "3M", 50]
         case 4:
             return ["936000", "1Y", 20]
         default:

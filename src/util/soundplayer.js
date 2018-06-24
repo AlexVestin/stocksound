@@ -43,7 +43,7 @@ export default class SoundPlayer {
 
         this.buffers = {}
 
-        this.sample = "synth"
+        this.sample = "piano"
         this.play = this.play.bind(this)
         this.stop = this.stop.bind(this)
         this.cb = callback;
@@ -113,7 +113,7 @@ class PlayTimer {
                     this.play(notes, buffers, ctx);
                     this.i++;
                 }
-            }, 60 + Math.floor(Math.random() * 200))
+            }, 80 + Math.floor(Math.random() * 220))
         }
     }
 }
