@@ -104,7 +104,7 @@ class FeaturedList extends Component {
             style={{textAlign: "center"}}
             open={this.state.displayError}
             message={String(this.errorMessage)}
-            autoHideDuration={2500}
+            autoHideDuration={3000}
             onRequestClose={() => this.setState({displayError: false})}
         />
         </div>

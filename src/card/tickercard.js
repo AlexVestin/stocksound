@@ -43,9 +43,14 @@ export default class TickerCard extends React.Component {
   }
 
   parseResponse = (response) => {
-    
+    //Makeshift error handling
+    if(response.toUpperCase().includes("SORRY")) {
+      this.handleRequestError("Request for stock prices was not allowed. See issue #1 on Github for more info.")
+      this.setState({fetching: false})
+      return;
+    }
+
     let data = parseResponse(response, this.timeInterval, this.gran)
-    
     this.priceData = data[0]
     this.timeStamps = data[1]
     this.open = this.priceData[0]
